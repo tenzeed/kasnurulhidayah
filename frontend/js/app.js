@@ -2,10 +2,9 @@
 
 const NAV_ICONS = {
   dashboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
-  kasMasuk: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`,
-  kasKeluar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>`,
-  hutang: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8c0-2.2-2.2-4-5-4S7 5.8 7 8s2.2 3.2 5 4 5 1.8 5 4-2.2 4-5 4-5-1.8-5-4M12 2v2m0 16v2"/></svg>`,
-  receh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="15" r="6" opacity="0.5"/></svg>`,
+  kas: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.2" y="6" width="19.6" height="13.5" rx="2.6"/><path d="M2.2 9.8h19.6"/><circle cx="16.6" cy="14.3" r="1.5" fill="currentColor" stroke="none"/></svg>`,
+  hutang: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-17a1 1 0 0 1 1-1Z"/><path d="M9 8.5h6M9 12.5h6M9 16.5h3.5"/></svg>`,
+  receh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8.5" r="6"/><circle cx="15.5" cy="15.5" r="6"/></svg>`,
   laporan: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z"/><path d="M9 13h6M9 17h6"/></svg>`,
   anggota: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
   sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>`,
@@ -15,12 +14,11 @@ const NAV_ICONS = {
 
 const ROUTES = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', roles: ['admin', 'anggota'] },
-  { key: 'kasMasuk', label: 'Kas Masuk', icon: 'kasMasuk', roles: ['admin', 'anggota'] },
-  { key: 'kasKeluar', label: 'Kas Keluar', icon: 'kasKeluar', roles: ['admin', 'anggota'] },
-  { key: 'hutang', label: 'Hutang Anggota', icon: 'hutang', roles: ['admin', 'anggota'] },
-  { key: 'receh', label: 'Uang Receh', icon: 'receh', roles: ['admin', 'anggota'] },
+  { key: 'kas', label: 'Kas', icon: 'kas', roles: ['admin', 'anggota'] },
+  { key: 'hutang', label: 'Hutang', icon: 'hutang', roles: ['admin', 'anggota'] },
+  { key: 'receh', label: 'Receh', icon: 'receh', roles: ['admin', 'anggota'] },
   { key: 'laporan', label: 'Laporan', icon: 'laporan', roles: ['admin', 'anggota'] },
-  { key: 'anggota', label: 'Kelola Akun', icon: 'anggota', roles: ['admin'] }
+  { key: 'anggota', label: 'Akun', icon: 'anggota', roles: ['admin'] }
 ];
 
 const state = {
@@ -140,7 +138,10 @@ function renderShell() {
 
   const bnav = document.getElementById('bottomNav');
   bnav.innerHTML = routes.map((r) => `
-    <button class="bottom-nav-item" data-route="${r.key}">${NAV_ICONS[r.icon]}<span>${r.label}</span></button>
+    <button class="bottom-nav-item" data-route="${r.key}" aria-label="${r.label}">
+      <span class="bottom-nav-icon">${NAV_ICONS[r.icon]}</span>
+      <span class="bottom-nav-label">${r.label}</span>
+    </button>
   `).join('');
   bnav.querySelectorAll('.bottom-nav-item').forEach((btn) => {
     btn.onclick = () => navigate(btn.dataset.route);

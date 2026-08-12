@@ -52,7 +52,6 @@ function action_addHutang_(payload) {
   if (nominal <= 0) return fail_('Nominal hutang harus lebih dari 0.', 'VALIDATION');
 
   var tanggal = d.tanggal ? Utilities.formatDate(new Date(d.tanggal), Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd') : Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd');
-  var tglObj = new Date(tanggal);
 
   var obj = {
     id: generateId_('HT'),
@@ -66,22 +65,8 @@ function action_addHutang_(payload) {
   };
   appendObjectRow_(getSheet_('Hutang'), obj);
 
-  // Sinkron otomatis: uang yang dipinjamkan ke anggota diambil dari saldo kas utama,
-  // jadi dicatat sebagai Kas Keluar supaya saldo kas langsung berkurang.
-  var kasKeluarObj = {
-    id: generateId_('KK'),
-    tanggal: tanggal,
-    bulan: tglObj.getMonth() + 1,
-    tahun: tglObj.getFullYear(),
-    keterangan: 'Pinjaman/Hutang — ' + d.nama_anggota,
-    kategori: 'Piutang Anggota',
-    nominal: nominal,
-    catatan: 'Otomatis tercatat dari pencatatan hutang (ID: ' + obj.id + ').' + (d.keterangan ? ' ' + d.keterangan : ''),
-    created_at: new Date(),
-    created_by: session.username
-  };
-  appendObjectRow_(getSheet_('Kas_Keluar'), kasKeluarObj);
-
+  // CATATAN: hutang TIDAK dicatat sebagai baris Kas Keluar terpisah (supaya "Total Pemasukan/Pengeluaran"
+  // tetap murni transaksi kas asli). Saldo Kas dihitung dinamis di Dashboard: pemasukan - pengeluaran - sisa hutang beredar.
   return ok_(obj);
 }
 
@@ -140,7 +125,6 @@ function action_addPembayaranHutang_(payload) {
   }
 
   var tanggal = d.tanggal ? Utilities.formatDate(new Date(d.tanggal), Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd') : Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Jakarta', 'yyyy-MM-dd');
-  var tglObj = new Date(tanggal);
 
   var sisaPembayaran = totalNominal;
   var alokasiHasil = [];
@@ -175,21 +159,9 @@ function action_addPembayaranHutang_(payload) {
 
   var totalDibayarSekarang = totalNominal - sisaPembayaran;
 
-  // Sinkron otomatis: uang yang dibayarkan anggota kembali menambah saldo kas utama,
-  // dicatat sebagai SATU entri Kas Masuk (walau alokasinya mencicil beberapa hutang sekaligus).
-  var kasMasukObj = {
-    id: generateId_('KM'),
-    tanggal: tanggal,
-    bulan: tglObj.getMonth() + 1,
-    tahun: tglObj.getFullYear(),
-    keterangan: 'Pembayaran Hutang — ' + namaAnggota,
-    sumber: 'Pembayaran Hutang Anggota',
-    nominal: totalDibayarSekarang,
-    catatan: 'Otomatis tercatat dari pembayaran hutang.' + (d.catatan ? ' ' + d.catatan : ''),
-    created_at: new Date(),
-    created_by: session.username
-  };
-  appendObjectRow_(getSheet_('Kas_Masuk'), kasMasukObj);
+  // CATATAN: pembayaran hutang TIDAK dicatat sebagai baris Kas Masuk terpisah — karena uang itu
+  // sejatinya sudah menjadi bagian kas sejak awal (cuma sedang dipinjam), bukan pemasukan baru.
+  // Saldo Kas otomatis "kembali naik" karena sisa hutang beredar berkurang (lihat rumus di Laporan.gs).
 
   var sisaTargetSebelum = sisaOf(targetHutang);
   var totalDibayarTarget = alokasiHasil

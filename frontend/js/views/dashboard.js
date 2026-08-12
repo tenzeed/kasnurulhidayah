@@ -68,7 +68,7 @@ Views.dashboard = async function (container, ctx) {
           </div>
           <div class="kpi-hero-icon">${Icons.wallet}</div>
         </div>
-        <div class="kpi-hero-sub">Total kas masuk dikurangi kas keluar, termasuk pinjaman &amp; pembayaran hutang anggota</div>
+        <div class="kpi-hero-sub">Pemasukan dikurangi pengeluaran dan sisa hutang anggota yang masih beredar (belum dibayar)</div>
       </div>
     `;
     animateCountUp(document.getElementById('heroSaldoValue'), d.saldo_kas, { formatter: formatRupiah });
@@ -77,8 +77,7 @@ Views.dashboard = async function (container, ctx) {
       { key: 'total_pemasukan', label: 'Total Pemasukan', value: d.total_pemasukan, tone: 'primary', icon: 'trendUp', sub: 'Sesuai filter periode' },
       { key: 'total_pengeluaran', label: 'Total Pengeluaran', value: d.total_pengeluaran, tone: 'danger', icon: 'trendDown', sub: 'Sesuai filter periode' },
       { key: 'total_hutang', label: 'Sisa Hutang Anggota', value: d.total_hutang, tone: 'accent', icon: 'receipt', sub: 'Belum lunas' },
-      { key: 'total_receh', label: 'Uang Receh / Jajan', value: d.total_receh, tone: 'info', icon: 'coins', sub: 'Terpisah dari kas utama' },
-      { key: 'jumlah_transaksi', label: 'Jumlah Transaksi', value: d.jumlah_transaksi, tone: 'neutral', icon: 'activity', sub: 'Kas masuk + kas keluar', isCount: true }
+      { key: 'total_receh', label: 'Uang Receh / Jajan', value: d.total_receh, tone: 'info', icon: 'coins', sub: 'Terpisah dari kas utama' }
     ];
 
     document.getElementById('kpiGrid').innerHTML = items.map((it) => `

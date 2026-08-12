@@ -20,10 +20,8 @@ function action_getDashboard_(payload) {
   var totalPemasukan = sumNominal_(kmFiltered);
   var totalPengeluaran = sumNominal_(kkFiltered);
 
-  // Saldo kas = akumulasi SELURUH transaksi (bukan hanya periode terfilter),
-  // supaya saldo selalu mencerminkan kondisi riil kas saat ini.
-  var saldoKas = sumNominal_(kasMasuk) - sumNominal_(kasKeluar);
-
+  // Sisa hutang yang masih beredar (belum dibayar) di seluruh anggota — dihitung DULU,
+  // karena dipakai untuk rumus Saldo Kas di bawah.
   var totalHutang = 0;
   hutangList.forEach(function (h) {
     var dibayar = pembayaranList
@@ -33,15 +31,20 @@ function action_getDashboard_(payload) {
     if (sisa > 0) totalHutang += sisa;
   });
 
+  // Saldo Kas = pemasukan utama (SELURUH transaksi, bukan hanya periode terfilter) dikurangi
+  // pengeluaran, dikurangi sisa hutang anggota yang masih beredar (uang itu sedang "dipinjam",
+  // jadi belum ada di kas fisik). Saat anggota membayar, sisa hutang berkurang -> saldo otomatis naik lagi.
+  // Pemasukan/pengeluaran DIBIARKAN MURNI (tidak dicampur dengan hutang/pembayaran hutang).
+  var saldoKas = sumNominal_(kasMasuk) - sumNominal_(kasKeluar) - totalHutang;
+
   var totalReceh = sumNominal_(recehMasuk) - sumNominal_(recehKeluar);
 
-  var jumlahTransaksi = kmFiltered.length + kkFiltered.length;
-
-  // Data untuk grafik: pemasukan vs pengeluaran per bulan (12 bulan terakhir yang ada datanya)
+  // Data untuk grafik: pemasukan vs pengeluaran per bulan (murni, tanpa hutang) — 12 periode terakhir yang ada datanya
   var grafikBulanan = buildGrafikBulanan_(kasMasuk, kasKeluar);
 
-  // Perkembangan saldo kas kumulatif per bulan
-  var grafikSaldo = buildGrafikSaldoKumulatif_(grafikBulanan);
+  // Perkembangan saldo kas kumulatif per bulan — ini IKUT memperhitungkan hutang diberikan/dibayar,
+  // supaya tren grafik konsisten dengan angka Saldo Kas di atas.
+  var grafikSaldo = buildSaldoTimeline_(kasMasuk, kasKeluar, hutangList, pembayaranList);
 
   // Grafik hutang per anggota (sisa hutang)
   var grafikHutang = hutangList.map(function (h) {
@@ -61,7 +64,6 @@ function action_getDashboard_(payload) {
     total_pengeluaran: totalPengeluaran,
     total_hutang: totalHutang,
     total_receh: totalReceh,
-    jumlah_transaksi: jumlahTransaksi,
     grafik_bulanan: grafikBulanan,
     grafik_saldo: grafikSaldo,
     grafik_hutang: grafikHutang
@@ -156,10 +158,44 @@ function buildGrafikBulanan_(kasMasuk, kasKeluar) {
   return arr.slice(-12); // 12 periode terakhir yang punya data
 }
 
-function buildGrafikSaldoKumulatif_(grafikBulanan) {
+// Tren saldo kas kumulatif per bulan — memperhitungkan kas masuk/keluar MURNI
+// ditambah efek hutang (hutang diberikan mengurangi, pembayaran menambah),
+// supaya grafik ini konsisten dengan angka Saldo Kas di kartu utama dashboard.
+function buildSaldoTimeline_(kasMasuk, kasKeluar, hutangList, pembayaranList) {
+  var map = {};
+  function ensure(k) { if (!map[k]) map[k] = { periode: k, delta: 0 }; return map[k]; }
+  function periodeKey(bulan, tahun) { return tahun + '-' + String(bulan).padStart(2, '0'); }
+
+  kasMasuk.forEach(function (i) {
+    if (!i.bulan || !i.tahun) return;
+    ensure(periodeKey(i.bulan, i.tahun)).delta += Number(i.nominal || 0);
+  });
+  kasKeluar.forEach(function (i) {
+    if (!i.bulan || !i.tahun) return;
+    ensure(periodeKey(i.bulan, i.tahun)).delta -= Number(i.nominal || 0);
+  });
+  hutangList.forEach(function (h) {
+    if (!h.tanggal) return;
+    var d = new Date(h.tanggal);
+    if (isNaN(d.getTime())) return;
+    ensure(periodeKey(d.getMonth() + 1, d.getFullYear())).delta -= Number(h.nominal || 0);
+  });
+  pembayaranList.forEach(function (p) {
+    if (!p.tanggal) return;
+    var d = new Date(p.tanggal);
+    if (isNaN(d.getTime())) return;
+    ensure(periodeKey(d.getMonth() + 1, d.getFullYear())).delta += Number(p.nominal || 0);
+  });
+
+  var arr = Object.keys(map).map(function (k) { return map[k]; });
+  arr.sort(function (a, b) { return a.periode.localeCompare(b.periode); });
+
+  // Hitung kumulatif dari SELURUH riwayat (bukan cuma 12 periode terakhir) supaya titik
+  // paling akhir benar-benar sama dengan angka Saldo Kas di kartu utama, baru tampilkan 12 terakhir.
   var kumulatif = 0;
-  return grafikBulanan.map(function (item) {
-    kumulatif += (item.masuk - item.keluar);
+  var full = arr.map(function (item) {
+    kumulatif += item.delta;
     return { periode: item.periode, saldo: kumulatif };
   });
+  return full.slice(-12);
 }

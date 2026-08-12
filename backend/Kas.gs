@@ -3,7 +3,7 @@
  * CRUD untuk Kas Masuk dan Kas Keluar.
  */
 
-var KATEGORI_PENGELUARAN = ['Konsumsi', 'Transportasi', 'Peralatan', 'Operasional', 'Piutang Anggota', 'Lainnya'];
+var KATEGORI_PENGELUARAN = ['Konsumsi', 'Transportasi', 'Peralatan', 'Operasional', 'Lainnya'];
 
 // ---------------- KAS MASUK ----------------
 function action_getKasMasuk_(payload) {
@@ -154,7 +154,18 @@ function filterByPeriode_(items, payload) {
 }
 
 function sortByTanggalDesc_(a, b) {
-  var ta = a.tanggal ? new Date(a.tanggal).getTime() : new Date(a.created_at).getTime();
-  var tb = b.tanggal ? new Date(b.tanggal).getTime() : new Date(b.created_at).getTime();
-  return tb - ta;
+  return periodeSortValue_(b) - periodeSortValue_(a);
+}
+
+// Bangun angka yyyymmdd dari bulan/tahun (wajib) + tanggal (opsional) untuk pengurutan yang konsisten.
+// SENGAJA tidak memakai created_at (waktu input data) — urutan harus mengikuti tanggal transaksi asli.
+function periodeSortValue_(item) {
+  var tahun = Number(item.tahun) || 0;
+  var bulan = Number(item.bulan) || 0;
+  var tgl = 1;
+  if (item.tanggal) {
+    var d = new Date(item.tanggal);
+    if (!isNaN(d.getTime())) tgl = d.getDate();
+  }
+  return tahun * 10000 + bulan * 100 + tgl;
 }
