@@ -47,6 +47,11 @@ const Api = (() => {
       if (val === undefined || val === null) return;
       if (key === 'data' && typeof val === 'object') {
         query.set('data', JSON.stringify(val));
+        // ANTI-DOBEL: kode unik dari ISI data yang dikirim (bukan waktu/acak), supaya kalau
+        // request yang SAMA PERSIS terkirim ulang (mis. user klik "Simpan" lagi karena
+        // mengira gagal padahal server sudah menyimpannya), backend mengenali dan tidak
+        // membuat data dobel. Lihat handleRequest_ di Code.gs.
+        query.set('idempotency_key', simpleHash_(action + JSON.stringify(val)));
       } else {
         query.set(key, val);
       }

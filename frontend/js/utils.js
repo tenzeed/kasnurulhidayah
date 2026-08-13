@@ -103,3 +103,13 @@ function staggerFadeIn(container, selector, baseDelay = 0.035, max = 14) {
     el.style.animationDelay = (Math.min(i, max) * baseDelay).toFixed(3) + 's';
   });
 }
+
+// Hash non-kriptografis sederhana (FNV-1a-like) — dipakai untuk membuat idempotency key
+// dari isi request, supaya percobaan kirim ulang dengan data PERSIS SAMA bisa dikenali backend.
+function simpleHash_(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+  }
+  return 'h' + (hash >>> 0).toString(36);
+}
