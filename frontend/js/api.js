@@ -39,8 +39,6 @@ const Api = (() => {
     const query = new URLSearchParams();
     query.set('action', action);
     query.set('token', getToken());
-    // Cache-buster: mencegah browser/proxy menyimpan cache respons GET yang seharusnya selalu segar.
-    query.set('_', Date.now().toString());
 
     Object.keys(params).forEach((key) => {
       const val = params[key];
@@ -48,22 +46,40 @@ const Api = (() => {
       if (key === 'data' && typeof val === 'object') {
         query.set('data', JSON.stringify(val));
         // ANTI-DOBEL: kode unik dari ISI data yang dikirim (bukan waktu/acak), supaya kalau
-        // request yang SAMA PERSIS terkirim ulang (mis. user klik "Simpan" lagi karena
-        // mengira gagal padahal server sudah menyimpannya), backend mengenali dan tidak
-        // membuat data dobel. Lihat handleRequest_ di Code.gs.
+        // request yang SAMA PERSIS terkirim ulang (baik otomatis oleh retry di bawah, maupun
+        // manual karena user klik "Simpan" lagi), backend mengenali dan tidak membuat data
+        // dobel. Lihat handleRequest_ di Code.gs.
         query.set('idempotency_key', simpleHash_(action + JSON.stringify(val)));
       } else {
         query.set(key, val);
       }
     });
 
+    return callWithRetry_(url, query, 3);
+  }
+
+  function sleep_(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // RETRY OTOMATIS: Apps Script Web App kadang gagal mengirim balik respons ke browser
+  // (redirect internal Google yang tidak stabil) meski datanya SUDAH tersimpan di server.
+  // Daripada langsung menampilkan error, coba lagi otomatis beberapa kali dulu — aman
+  // untuk request tambah/edit/hapus karena selalu membawa idempotency_key yang sama persis
+  // di setiap percobaan, jadi tidak akan pernah membuat data dobel di server.
+  async function callWithRetry_(url, query, attemptsLeft) {
+    // Cache-buster per PERCOBAAN (bukan per aksi) — supaya browser tidak menyimpan cache
+    // GET, tapi idempotency_key di atas tetap sama di setiap percobaan.
+    query.set('_', Date.now().toString());
+
     let res;
     try {
-      res = await fetch(`${url}?${query.toString()}`, {
-        method: 'GET',
-        cache: 'no-store'
-      });
+      res = await fetch(`${url}?${query.toString()}`, { method: 'GET', cache: 'no-store' });
     } catch (networkErr) {
+      if (attemptsLeft > 1) {
+        await sleep_(1200);
+        return callWithRetry_(url, query, attemptsLeft - 1);
+      }
       throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda.');
     }
 
@@ -71,6 +87,10 @@ const Api = (() => {
     try {
       json = await res.json();
     } catch (parseErr) {
+      if (attemptsLeft > 1) {
+        await sleep_(1200);
+        return callWithRetry_(url, query, attemptsLeft - 1);
+      }
       throw new Error('Respons server tidak valid. Pastikan Web App sudah di-deploy dengan benar.');
     }
 
