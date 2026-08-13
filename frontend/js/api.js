@@ -1,7 +1,11 @@
 // api.js
 // Wrapper pemanggilan API ke Google Apps Script.
-// PENTING: Content-Type dipaksa "text/plain" agar browser mengirim "simple request"
-// (tanpa preflight OPTIONS) karena Apps Script Web App tidak menangani preflight.
+// PENTING: Semua request dikirim sebagai GET dengan parameter di URL (bukan POST dengan body).
+// Ini SENGAJA, bukan kebetulan: Apps Script Web App merespons lewat redirect ke
+// script.googleusercontent.com, dan pada beberapa kondisi jaringan/browser, request POST
+// yang mengikuti redirect itu bisa gagal dibaca (muncul error 404 di URL "echo...").
+// Request GET jauh lebih stabil melewati mekanisme redirect tersebut. Backend (Code.gs)
+// sudah mendukung GET sejak awal lewat fallback e.parameter, jadi tidak perlu ubah backend.
 
 const Api = (() => {
   function getToken() {
@@ -32,14 +36,27 @@ const Api = (() => {
       throw new Error('URL API belum dikonfigurasi. Edit file js/config.js terlebih dahulu.');
     }
 
-    const body = Object.assign({ action, token: getToken() }, params);
+    const query = new URLSearchParams();
+    query.set('action', action);
+    query.set('token', getToken());
+    // Cache-buster: mencegah browser/proxy menyimpan cache respons GET yang seharusnya selalu segar.
+    query.set('_', Date.now().toString());
+
+    Object.keys(params).forEach((key) => {
+      const val = params[key];
+      if (val === undefined || val === null) return;
+      if (key === 'data' && typeof val === 'object') {
+        query.set('data', JSON.stringify(val));
+      } else {
+        query.set(key, val);
+      }
+    });
 
     let res;
     try {
-      res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(body)
+      res = await fetch(`${url}?${query.toString()}`, {
+        method: 'GET',
+        cache: 'no-store'
       });
     } catch (networkErr) {
       throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda.');
