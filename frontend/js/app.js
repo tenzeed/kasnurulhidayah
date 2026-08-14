@@ -39,8 +39,17 @@ function currentRoutesForRole(role) {
 function renderLogin() {
   document.getElementById('app').innerHTML = `
     <div class="login-screen">
-      <svg class="login-motif m1" viewBox="0 0 100 100"><path d="M50 5 61 39 95 39 68 60 79 95 50 74 21 95 32 60 5 39 39 39Z" fill="currentColor"/></svg>
-      <svg class="login-motif m2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      <svg class="login-pattern" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <defs>
+          <pattern id="islamicStarPattern" width="64" height="64" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="currentColor" stroke-width="1">
+              <rect x="16" y="16" width="32" height="32" />
+              <rect x="16" y="16" width="32" height="32" transform="rotate(45 32 32)" />
+            </g>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#islamicStarPattern)" />
+      </svg>
       <div class="login-card">
         <div class="login-brand">
           <div class="login-brand-mark"><img src="assets/logo.png" alt="Logo Nurul Hidayah" /></div>
