@@ -322,8 +322,8 @@ h1, h2, h3, h4 { font-family: var(--font-body); font-weight: 700; line-height: 1
   top: -50px;
   background-color: #fff;
   opacity: 0.08;
-  -webkit-mask-image: url('assets/logo-outline.png');
-  mask-image: url('assets/logo-outline.png');
+  -webkit-mask-image: url('../assets/logo-outline.png');
+  mask-image: url('../assets/logo-outline.png');
   -webkit-mask-size: contain;
   mask-size: contain;
   -webkit-mask-repeat: no-repeat;
