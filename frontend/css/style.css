@@ -336,6 +336,20 @@ h1, h2, h3, h4 { font-family: var(--font-body); font-weight: 700; line-height: 1
   .login-watermark { width: 320px; height: 320px; right: -50px; top: -30px; }
 }
 
+.login-sash {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  left: -30px;
+  bottom: -20px;
+  color: #fff;
+  opacity: 0.09;
+  pointer-events: none;
+}
+@media (max-width: 520px) {
+  .login-sash { width: 220px; height: 220px; left: -20px; bottom: -10px; }
+}
+
 .login-card {
   position: relative;
   width: 100%; max-width: 380px;

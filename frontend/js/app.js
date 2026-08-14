@@ -40,6 +40,12 @@ function renderLogin() {
   document.getElementById('app').innerHTML = `
     <div class="login-screen">
       <div class="login-watermark"></div>
+      <svg class="login-sash" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-20 260 C 60 200, 50 120, 140 105 C 230 90, 215 25, 300 -15"
+              fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" />
+        <path d="M-30 310 C 70 270, 65 185, 165 165 C 265 145, 250 65, 340 30"
+              fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" opacity="0.6" />
+      </svg>
       <div class="login-card">
         <div class="login-brand">
           <div class="login-brand-mark"><img src="assets/logo.png" alt="Logo Nurul Hidayah" /></div>
