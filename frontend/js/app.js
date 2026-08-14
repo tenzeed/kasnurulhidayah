@@ -43,7 +43,7 @@ function renderLogin() {
       <svg class="login-motif m2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2"/></svg>
       <div class="login-card">
         <div class="login-brand">
-          <div class="login-brand-mark">NH</div>
+          <div class="login-brand-mark"><img src="assets/logo.png" alt="Logo Nurul Hidayah" /></div>
           <h1 class="brand-font">${window.APP_CONFIG.APP_NAME}</h1>
           <p>Masuk untuk mengelola atau melihat laporan keuangan kas.</p>
         </div>
@@ -58,10 +58,6 @@ function renderLogin() {
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Masuk</button>
         </form>
-        <div class="login-demo-note">
-          Login pertama kali sebagai Admin menggunakan akun default yang dibuat saat setup
-          (lihat <strong>SETUP_GUIDE.md</strong>). Segera ganti password setelah masuk.
-        </div>
       </div>
     </div>
   `;
@@ -96,7 +92,7 @@ function renderShell() {
   document.getElementById('app').innerHTML = `
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-mark">NH</div>
+        <div class="sidebar-brand-mark"><img src="assets/logo.png" alt="Logo Nurul Hidayah" /></div>
         <div class="sidebar-brand-text">${window.APP_CONFIG.APP_NAME}<small>Manajemen Kas Digital</small></div>
       </div>
       <nav class="sidebar-nav" id="sidebarNav"></nav>
