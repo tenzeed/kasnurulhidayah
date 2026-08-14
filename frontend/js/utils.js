@@ -38,7 +38,7 @@ function todayISO() {
 function currentMonth() { return new Date().getMonth() + 1; }
 function currentYear() { return new Date().getFullYear(); }
 
-function yearOptions(range = 4) {
+function yearOptions(range = 10) {
   const y = currentYear();
   const arr = [];
   for (let i = 0; i < range; i++) arr.push(y - i);
